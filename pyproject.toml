@@ -5,7 +5,11 @@ description = "desc"
 authors = [{ name = "Piotr Karaś", email = "pkaras@student.agh.edu.pl" }]
 requires-python = ">=3.13"
 readme = "README.md"
-dependencies = []
+dependencies = [
+    "matplotlib>=3.10.7",
+    "notebook>=7.4.7",
+    "pandas>=2.3.3",
+]
 
 [dependency-groups]
 dev = [
