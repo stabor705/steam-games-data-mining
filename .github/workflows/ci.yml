@@ -14,25 +14,28 @@ jobs:
       - name: checkout repository
         uses: actions/checkout@v3
 
-      - name: setup python
-        uses: actions/setup-python@v3
+      - name: "Install just"
+        uses: extractions/setup-just@v3
+
+      - name: "Set up Python"
+        uses: actions/setup-python@v5
         with:
-          python-version: 3.13
+          python-version-file: ".python-version"
 
-      - name: install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install uv
-          uv sync --dev --no-cache-dir
+      - name: "Install uv"
+        uses: astral-sh/setup-uv@v5
 
-      - name: install just
-        run: |
-          sudo apt install just
+      - name: "Install dependencies"
+        run: uv sync --dev --no-cache-dir --frozen
 
-      - name: run linters
-        run: |
-          just _ci_lint
+      - name: "Run ruff"
+        run: just ruff
 
-      - name: run tests
-        run: |
-          just _ci_test
+      - name: "Run fawltydeps"
+        run: just deps
+
+      - name: "Run mypy"
+        run: just mypy
+
+      - name: "Run tests"
+        run: just test

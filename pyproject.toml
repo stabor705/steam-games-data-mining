@@ -1,6 +1,6 @@
 [project]
 name = "steam-games-data-mining"
-version = "0.1.0"
+version = "0.0.0"  # This is a placeholder, version is determined by git tag during CI/CD
 description = "desc"
 authors = [{ name = "Piotr Karaś", email = "pkaras@student.agh.edu.pl" }]
 requires-python = ">=3.13"
@@ -9,31 +9,57 @@ dependencies = [
     "matplotlib>=3.10.7",
     "notebook>=7.4.7",
     "pandas>=2.3.3",
+    "requests>=2.32.5",
+    "tqdm>=4.67.1",
 ]
 
 [dependency-groups]
 dev = [
-    "black>=25.1.0,<26",
-    "copier>=9.7.1,<10",
-    "fawltydeps>=0.20,<0.21",
-    "flake8>=7.3.0,<8",
-    "flake8-pyproject>=1.2.3,<2",
-    "isort[colors]>=6.0.1,<7",
-    "mypy>=1.16.1,<2",
-    "pytest>=8.4.1,<9",
-    "pytest-cov>=6.2.1,<7",
+    "copier>=9.8.0",
+    "fawltydeps>=0.20.0,<1.0.0",
+    "ipython>=8.14.0,<9",
+    "mypy>=1.10.0,<2",
+    "pytest-asyncio>=0.25.2,<0.26",
+    "pytest-cov>=6.0.0,<7",
+    "pytest-mock>=3.14.0,<4",
+    "pytest>=8.3.4,<9",
+    "ruff>=0.14.1",
 ]
 
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+[tool.uv]
+package = false
 
-[tool.black]
+[tool.ruff]
 line-length = 120
 
-[tool.coverage.run]
-branch = true
-omit = ["*test*"]
+[tool.ruff.lint]
+#  See https://docs.astral.sh/ruff/rules/ for more information.
+select = [
+    "PT",   # flake8-pytest-style
+    "B",    # flake8-bugbear
+    "S",    # flake8-bandit
+    "A",    # flake8-builtins
+    "COM",  # flake8-commas
+    "C4",   # flake8-comprehensions
+    "T10",  # flake8-debugger
+    "I",    # isort
+    "T20",  # flake8-print
+    "SIM",  # flake8-simplify
+    "LOG",  # flake8-logging
+    "G",    # flake8-logging-format
+    "N",    # pep8-naming
+    "E",    # pycodestyle
+    "W",    # pycodestyle
+    "F",    # pyflakes
+    ]
+ignore = ["S101", "A003", "B904", "N818", "COM812"]
+
+[tool.ruff.lint.flake8-pytest-style]
+fixture-parentheses = true
+mark-parentheses = true
+
+[tool.ruff.lint.isort]
+order-by-type = false
 
 [tool.coverage.report]
 exclude_lines = [
@@ -42,43 +68,35 @@ exclude_lines = [
 ]
 
 [tool.fawltydeps]
-code = ["steam_games_data_mining"]
+code = [
+    "steam_games_data_mining",
+    "data_analysis.ipynb",
+    "games_scraper.ipynb",
+]
 deps = ["pyproject.toml"]
 ignore_unused = [
+    # Indirectly used
+    "notebook",
+
     # Dev dependencies. This list should contain ALL of them!
-    "black",
     "copier",
     "fawltydeps",
-    "flake8",
-    "flake8-pyproject",
-    "isort",
+    "ipython",
     "mypy",
-    "pytest",
+    "pytest-asyncio",
     "pytest-cov",
+    "pytest-mock",
+    "pytest",
+    "ruff",
 ]
-
-[tool.flake8]
-# W503 == line break before binary operator. Conflicts with W504 - line break after binary operator.
-# E203 == whitespace before ':' Conflicts with black
-ignore = ['W503', 'E203']
-max-line-length = 120
-
-[tool.isort]
-profile = "black"
-line_length = 120
-order_by_type = false
-known_first_party = ["steam_games_data_mining"]
 
 [tool.mypy]
 disallow_untyped_defs = true
 ignore_missing_imports = true
-show_error_codes = true
-show_traceback = true
-no_implicit_optional = true
-check_untyped_defs = true
-strict_equality = true
+no_implicit_optional = false
+disable_error_code = "misc"
 
 [tool.pytest.ini_options]
 python_files = ["tests.py", "test_*.py", "*_tests.py"]
-addopts = "--strict-markers --cov=. --cov-fail-under=90.0 --cov-config=.coveragerc"
-pythonpath = ["."]
+addopts = "--strict-markers -p no:warnings --cov=. --cov-fail-under=90 --cov-config=.coveragerc"
+asyncio_mode = "auto"

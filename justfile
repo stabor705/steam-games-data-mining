@@ -1,105 +1,84 @@
-set dotenv-load := true
+set dotenv-load
 
-PYTHONPATH := "steam_games_data_mining"
-SRC_PATH := "steam_games_data_mining"
+PYTHONPATH := "./steam_games_data_mining"
+PATHS_TO_LINT := "steam_games_data_mining tests"
 TEST_PATH := "tests"
 ANSWERS_FILE := ".copier/.copier-answers.copier-python-project.yml"
 
-# --- Commands for development ---
+[doc("Command run when 'just' is called without any arguments")]
+default: help
 
-# Run all checks and tests (lints, mypy, tests...)
+[doc("Show this help message")]
+@help:
+	just --list
+
+[group("development")]
+[doc("Run all checks and tests (lints, mypy, tests...)")]
 all: lint_full test
 
-# Run all checks and tests, but fail on first that returns error (lints, mypy, tests...)
+[group("development")]
+[doc("Run all checks and tests, but fail on first that returns error (lints, mypy, tests...)")]
 all_ff: lint_full_ff test
 
-# Run black lint check (code formatting)
-black:
-    uv run black {{ SRC_PATH }} --diff --check --color
+[group("lint")]
+[doc("Run ruff lint check (code formatting)")]
+ruff:
+	uv run ruff check {{PATHS_TO_LINT}}
+	uv run ruff format {{PATHS_TO_LINT}} --check
 
-# Update project by rerunning copier questionnaire to modify some answers
-copier_recopy answers=ANSWERS_FILE:
-    copier recopy --answers-file {{ answers }}
+[group("copier")]
+[doc("Update project using copier")]
+copier_update answers=ANSWERS_FILE skip-answered="true":
+	uv run copier update --answers-file {{answers}} \
+	{{ if skip-answered == "true" { "--skip-answered" } else { "" } }}
 
-# Update project using copier with respect to the answers file
-copier_update answers=ANSWERS_FILE:
-    copier update --answers-file {{ answers }} --skip-answered
-
-# Run fawltydeps lint check (deopendency issues)
+[group("lint")]
+[doc("Run fawltydeps lint check (deopendency issues)")]
 deps:
-    uv run fawltydeps
+	uv run fawltydeps
 
-# Run flake8 lint check (pep8 etc.)
-flake:
-    uv run flake8 {{ SRC_PATH }}
-
-# Show this help message
-@help:
-    just --list
-
-# Run isort lint check (import sorting)
-isort:
-    uv run isort {{ SRC_PATH }} --diff --check --color
-
-# Run all lightweight lint checks (no mypy)
+[group("lint")]
+[doc("Run all lightweight lint checks (no mypy)")]
 @lint:
-    -just black
-    -just deps
-    -just flake
-    -just isort
+	-just deps
+	-just ruff
 
-# Run all lightweight lint checks, but fail on first that returns error
-lint_ff: black deps flake isort
+[group("lint")]
+[doc("Run all lightweight lint checks, but fail on first that returns error")]
+lint_ff: deps ruff
 
-# Automatically fix lint problems (only reported by black and isort)
+[group("lint")]
+[doc("Automatically fix lint problems (only reported by ruff)")]
 lint_fix:
-    uv run black {{ SRC_PATH }}
-    uv run isort {{ SRC_PATH }}
+	uv run ruff check {{PATHS_TO_LINT}} --fix
+	uv run ruff format {{PATHS_TO_LINT}}
 
-# Run all lint checks and mypy
+[group("lint")]
+[doc("Run all lint checks and mypy")]
 lint_full: lint mypy
-
 alias full_lint := lint_full
 
-# Run all lint checks and mypy, but fail on first that returns error
+[group("lint")]
+[doc("Run all lint checks and mypy, but fail on first that returns error")]
 lint_full_ff: lint_ff mypy
 alias full_lint_ff := lint_full_ff
 
-# Run mypy check (type checking)
+[group("lint")]
+[doc("Run mypy check (type checking)")]
 mypy: _set_pythonpath
-    uv run mypy {{ SRC_PATH }} --show-error-codes --show-traceback --implicit-reexport
+	uv run mypy {{PATHS_TO_LINT}} --show-error-codes --show-traceback --implicit-reexport
 
-# Open python console (useful when prefixed with dc, as it opens python console inside docker)
-ps: _set_pythonpath
-    uv run ipython
+[group("development")]
+[doc("Open python console (useful when prefixed with dc, as it opens python console inside docker)")]
+ps:
+	PYTHONPATH={{PYTHONPATH}} uv run ipython
 alias ipython := ps
 
-# Helper command, sets PYTHONPATH
+[doc("Helper command, sets PYTHONPATH")]
 _set_pythonpath path=PYTHONPATH:
-    PYTHONPATH={{ path }}
+	PYTHONPATH={{path}}
 
-# Run non-integration tests (optionally specify file=path/to/test_file.py)
+[group("development")]
+[doc("Run non-integration tests (optionally specify file=path/to/test_file.py)")]
 test file=TEST_PATH: _set_pythonpath
-    uv run pytest {{ file }} --durations=10
-
-# --- Separate command versions for github actions ---
-
-_ci: _ci_black _ci_deps _ci_flake8 _ci_isort _ci_mypy _ci_test
-
-_ci_black:
-    uv run black {{ SRC_PATH }} --diff --check --quiet
-
-_ci_deps:
-    uv run fawltydeps --detailed
-
-_ci_flake8:
-    uv run flake8 {{ SRC_PATH }}
-
-_ci_isort:
-    uv run isort {{ SRC_PATH }} --diff --check --quiet
-
-_ci_mypy: _set_pythonpath
-    uv run mypy {{ SRC_PATH }} --show-error-codes --show-traceback --implicit-reexport --junit-xml=mypy-results.xml
-
-_ci_test: _set_pythonpath
-    uv run pytest {{ TEST_PATH }} --durations=10 --junit-xml=test-results.xml
+	uv run pytest {{file}} --durations=10
