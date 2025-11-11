@@ -8,8 +8,11 @@ readme = "README.md"
 dependencies = [
     "matplotlib>=3.10.7",
     "notebook>=7.4.7",
+    "numpy>=2.3.4",
     "pandas>=2.3.3",
     "requests>=2.32.5",
+    "scipy>=1.16.3",
+    "sentence-transformers>=5.1.2",
     "tqdm>=4.67.1",
 ]
 
@@ -72,6 +75,7 @@ code = [
     "steam_games_data_mining",
     "data_analysis.ipynb",
     "games_scraper.ipynb",
+    "feature_extraction.ipynb",
 ]
 deps = ["pyproject.toml"]
 ignore_unused = [
